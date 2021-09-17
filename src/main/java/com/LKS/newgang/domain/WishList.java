@@ -1,30 +1,29 @@
 package com.LKS.newgang.domain;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @Entity
-@Setter
-@Getter
-public class Enrolment {
+@NoArgsConstructor
+public class WishList {
 
     @Id
-    @Column(name = "enr_no")
+    @Column(name = "wish_no")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int no;
 
     @JoinColumn(name = "std_no")
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     private Student stdNo;
 
     @JoinColumn(name = "lec_no")
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     private Lecture lecNo;
 
-    public Enrolment() {
-
+    public WishList(Student student, Lecture lecture){
+        this.stdNo = student;
+        this.lecNo = lecture;
     }
 
     public int getNo() {
@@ -37,10 +36,5 @@ public class Enrolment {
 
     public Lecture getLecNo() {
         return lecNo;
-    }
-
-    public Enrolment(Student student, Lecture lecture){
-        this.stdNo = student;
-        this.lecNo = lecture;
     }
 }

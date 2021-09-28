@@ -27,7 +27,7 @@ public class SearchController {
      * @param info campus, colleague, department, major 정보가 들어있음
      * @return 강의 정보들
      */
-    @GetMapping("/search/lectures")
+    @PostMapping("/search/lectures")
     @PreAuthorize(value = "hasAuthority('course:read')")
     public ResponseEntity<?> getLectureList(@RequestBody HashMap<String, String> info) {
         String campus = info.get("campus");
@@ -42,6 +42,19 @@ public class SearchController {
                 return ResponseEntity.ok(searchService.findByMajor(campus, colleague, department, major));
             }
         } catch (IllegalStateException | NoSuchElementException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/search/elective")
+    @PreAuthorize(value = "hasAuthority('course:read')")
+    public ResponseEntity<?> getElective(@RequestBody HashMap<String, String> info){
+        String campus = info.get("campus");
+        String classification = info.get("classification");
+
+        try {
+            return ResponseEntity.ok(searchService.getElectiveList(campus, classification));
+        } catch (NoSuchElementException e) {
             return ResponseEntity.badRequest().build();
         }
     }
@@ -112,4 +125,5 @@ public class SearchController {
             return ResponseEntity.badRequest().build();
         }
     }
+
 }

@@ -18,13 +18,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SearchService {
 
-    @Autowired
     private final StudentRepository studentRepository;
     private final CampusRepository campusRepository;
     private final ColleagueRepository colleagueRepository;
     private final DepartmentRepository departmentRepository;
     private final MajorRepository majorRepository;
     private final LectureRepository lectureRepository;
+    private final ElectiveRepository electiveRepository;
+    private final ElectiveClassificationRepository classificationRepository;
 
     public List<Lecture> findByDepartment(String campus, String colleague, String department) {
         Campus targetCampus = campusRepository.findById(campus).orElseThrow();
@@ -92,5 +93,11 @@ public class SearchService {
         Department department = departmentRepository.findByColleagueAndDepartmentName(colleague, info.get("department")).orElseThrow();
         List<String> result = majorRepository.findByDepartment(department).stream().map(Major::getMajorName).collect(Collectors.toList());
         return result;
+    }
+
+    public List<Elective> getElectiveList(String campusName, String classificationName){
+        Campus campus = campusRepository.findById(campusName).orElseThrow();
+        ElectiveClassification electiveClassification = classificationRepository.findById(classificationName).orElseThrow();
+        return electiveRepository.findByCampusAndClassification(campus, electiveClassification);
     }
 }

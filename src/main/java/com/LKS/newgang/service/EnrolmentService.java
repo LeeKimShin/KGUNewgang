@@ -9,6 +9,8 @@ import com.LKS.newgang.repository.LectureRepository;
 import com.LKS.newgang.repository.StudentRepository;
 import com.LKS.newgang.repository.WishListRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,7 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class EnrolmentService {
 
+    private final TaskScheduler scheduler;
     private final EnrolmentRepository enrolmentRepository;
     private final LectureRepository lectureRepository;
     private final StudentRepository studentRepository;
@@ -54,7 +57,6 @@ public class EnrolmentService {
                     return "기존에 신청한 강의와 강의 시간이 중복됩니다.";
             }
 
-
             // 겹치지 않는 경우 수강신청 완료
             enrolmentRepository.save(new Enrolment(student, wantToApply));
             return "신청이 완료되었습니다.";
@@ -67,34 +69,37 @@ public class EnrolmentService {
         }
     }
 
-    public void applyAuto(int stdID) {
+    @Scheduled(cron = "0 40 19 24 9 ?")
+    public void applyAuto() {
         try {
-            Student student = studentRepository.findById(stdID).orElseThrow(NoSuchStudentException::new);
-            List<WishList> wishList = wishListRepository.findByStdNoEquals(student);
+            List<WishList> wishList = wishListRepository.findAll();
 
             for (WishList ws : wishList) {//소망가방 자동추가
                 Lecture lecture = ws.getLecNo();
+                Student std = ws.getStdNo();
                 int curr_transfer = lecture.getCurr_transfer();
                 int max_transfer = lecture.getMax_transfer();
+                int currGrade = lecture.getCurr_grade();
+                int currOtherGrade = lecture.getCurr_other_grade();
 
-                if (student.isTransfer()) { // 편입생일 경우
+                if (std.isTransfer()) { // 편입생일 경우
                     if (max_transfer > curr_transfer) {
                         lecture.setCurr_transfer(lecture.getCurr_transfer() + 1);
-                        enrolmentRepository.save(new Enrolment(student, lecture));
+                        enrolmentRepository.save(new Enrolment(std, lecture));
                     }
-                } else if (student.getGrade() == lecture.getGrade()) {// 현재 학년이랑 과목 학년이랑 같은 경우
-                    if (lecture.getCurr_grade() < lecture.getMax_grade()) {
+                } else if (std.getGrade() == lecture.getGrade()) {// 현재 학년이랑 과목 학년이랑 같은 경우
+                    if (currGrade < lecture.getMax_grade()) {
                         lecture.setCurr_grade(lecture.getCurr_grade() + 1);
-                        enrolmentRepository.save(new Enrolment(student, lecture));
+                        enrolmentRepository.save(new Enrolment(std, lecture));
                     }
-                } else if (student.getGrade() != lecture.getGrade()) {// 현재 학년이랑 과목 학년이랑 다른 경우
-                    if (lecture.getCurr_other_grade() < lecture.getMax_other_grade()) {
+                } else if (std.getGrade() != lecture.getGrade()) {// 현재 학년이랑 과목 학년이랑 다른 경우
+                    if (currOtherGrade < lecture.getMax_other_grade()) {
                         lecture.setCurr_other_grade(lecture.getCurr_other_grade() + 1);
-                        enrolmentRepository.save(new Enrolment(student, lecture));
+                        enrolmentRepository.save(new Enrolment(std, lecture));
                     }
                 }
             }
-        } catch (NoSuchStudentException e) {
+        } catch (Exception e) {
             // Proper exception handling
         }
 

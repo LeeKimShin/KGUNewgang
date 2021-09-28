@@ -8,6 +8,7 @@ import com.LKS.newgang.service.WishListService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
@@ -192,11 +193,12 @@ class NewgangApplicationTests {
     void 수강신청조회() {
 
     }
+
     @Test
+    @Commit
     void 소망가방자동수강신청() {
         try {
-            enrolmentService.applyAuto(201713883);
-            assertThat(wishListService.getList("201713883").size()).isEqualTo(enrolmentService.getList("201713883").size());
+            enrolmentService.applyAuto();
         } catch (Exception e) {
             fail("failed");
         }
